@@ -1,0 +1,12 @@
+<div class="card" style="width: 20rem;">
+  <img class="card-img-top" [src]="product.payload.val().imageUrl">
+  <div class="card-body">
+    <h5 class="card-title">{{product.payload.val().title}}</h5>
+    <p class="card-text">{{product.payload.val().price | currency:'USD': true }}</p>
+
+  </div>
+  <div class="card-footer">
+    <a *ngIf="showActions" class="btn btn-primary btn-block">Add to cart</a>
+
+  </div>
+</div>

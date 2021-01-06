@@ -19,19 +19,23 @@ export class ProductFormComponent implements OnInit {
   product = new Product()
   aaa = 'fruits'
   id;
+  testForm: FormGroup;
+  productForCard
   constructor(categoryService: CategoriesService, private fb: FormBuilder, private productService: ProductService,
     private router: Router, private route: ActivatedRoute) {
     // categoryService.getCategories();
-    this.categories$ = categoryService.getCategories();
+    this.categories$ = categoryService.getAll();
     this.id = this.route.snapshot.paramMap.get('id');
     if (this.id) {
       this.productService.get(this.id).pipe(take(1)).subscribe(p => {
+        this.productForCard = p;
         this.product = <Product>p.payload.val()
       });
     }
   }
   ngOnInit(): void {
     this.intializeProductForm();
+    this.testForms()
   }
 
   intializeProductForm() {
@@ -62,6 +66,22 @@ export class ProductFormComponent implements OnInit {
     this.router.navigate(['/admin/products']);
   }
 
+  testForms() {
+    this.testForm = this.fb.group({
+      firstname: [''],
+      skills: this.fb.group({
+        skill1: [''],
+        skill2: ['']
+      })
+    })
+    this.testForm.patchValue({
+      skills: {
+        skill1: 'mango'
+      }
+    })
+    console.log(this.testForm.get('skills').get('skill1').value)
+    // this.testForm.get('skills').get('skill1').value
+  }
 
 
 

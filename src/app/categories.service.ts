@@ -15,7 +15,7 @@ export class CategoriesService {
 
   }
 
-  getCategories() {
+  getAll() {
     debugger
     return this.db.list('/categories/').snapshotChanges()
     // .subscribe((res) => {
