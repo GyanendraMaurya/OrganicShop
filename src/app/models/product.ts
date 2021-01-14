@@ -9,4 +9,9 @@ export class Product {
     this.category = ''
     this.imageUrl = ''
   }
+
+}
+export interface itemType {
+  product: Product,
+  quantity: number
 }
