@@ -12,17 +12,30 @@ import { shoppingCartItem } from './models/shopping-cart-item';
 })
 export class ShoppingCartService {
   constructor(private db: AngularFireDatabase) { }
-  create() {
-    return this.db.list('/shopping-carts').push({
-      dateCreated: new Date().getTime()
-    });
-  }
 
   async getCart(): Promise<Observable<ShoppingCart>> {
     let cartId = await this.getOrCreateCardId();
     return (this.db.object('/shopping-carts/' + cartId).valueChanges() as Observable<ShoppingCart>).pipe(map(x =>
-      new ShoppingCart(x.items)
+      new ShoppingCart(x?.items)
     ))
+  }
+
+  async addToCart(product) {
+    this.updateItem(product, 1)
+  }
+
+  async removeFromCart(product) {
+    this.updateItem(product, -1)
+  }
+
+  async clearCart() {
+    let cartId = await this.getOrCreateCardId()
+    this.db.object('/shopping-carts/' + cartId + '/items').remove();
+  }
+  create() {
+    return this.db.list('/shopping-carts').push({
+      dateCreated: new Date().getTime()
+    });
   }
 
   private getItem(cartId: string, productId: string) {
@@ -37,21 +50,25 @@ export class ShoppingCartService {
     localStorage.setItem('cartId', result.key);
     return result.key
   }
-  async addToCart(product) {
-    this.updateItemQuantity(product, 1)
-  }
 
-  async removeFromCart(product) {
-    this.updateItemQuantity(product, -1)
-  }
-
-  private async updateItemQuantity(product, change: number) {
+  private async updateItem(product, change: number) {
     let cartId = await this.getOrCreateCardId();
     let items$ = this.getItem(cartId, product.key)
-    items$.pipe(take(1)).subscribe((item: itemType) => {
-      this.db.object('/shopping-carts/' + cartId + '/items/' + product.key).update({
-        product: product.payload.val(), quantity: (item?.quantity || 0) + change
-      })
+    items$.pipe(take(1)).subscribe((item: shoppingCartItem) => {
+      let quantity = (item?.quantity || 0) + change
+      if (quantity == 0) {
+        this.db.object('/shopping-carts/' + cartId + '/items/' + product.key).remove()
+      }
+      else {
+        this.db.object('/shopping-carts/' + cartId + '/items/' + product.key).update({
+          title: item?.title || product.payload.val().title,
+          imageUrl: item?.imageUrl || product.payload.val().imageUrl,
+          price: item?.price || product.payload.val().price,
+          quantity: quantity
+          // product: product.payload.val(), quantity: (item?.quantity || 0) + change
+        })
+      }
+
     })
   }
 }
