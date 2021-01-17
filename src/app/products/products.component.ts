@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ProductService } from '../../product.service';
+import { ShoppingCart } from '../models/shopping-cart';
 import { ShoppingCartService } from '../shopping-cart.service';
 
 @Component({
@@ -15,31 +16,35 @@ export class ProductsComponent {
   filteredProducts = [];
   categories$;
   category;
-  cart: any;
+  cart$: Observable<ShoppingCart>;
   subsciption: Subscription
 
-  constructor(productService: ProductService, route: ActivatedRoute,
+  constructor(private productService: ProductService, private route: ActivatedRoute,
     private shoppingCartService: ShoppingCartService) {
     // this.categories$ = categoryService.getAll();
-    productService.getAll().pipe(switchMap(products => {
-      this.products = products
-      return route.queryParamMap
-    }))
-      .subscribe(params => {
-        this.category = params.get('category')
-        this.filteredProducts = (this.category) ?
-          this.products.filter(p => this.category == p.payload.val().category) :
-          this.products
-      })
+
   }
 
   async ngOnInit() {
-    this.subsciption = (await this.shoppingCartService.getCart()).subscribe(cart => {
-      this.cart = cart
-    })
+    this.cart$ = await this.shoppingCartService.getCart()
+    this.populateProducts()
   }
 
-  ngOnDestroy(): void {
-    this.subsciption.unsubscribe()
+  private populateProducts() {
+    this.productService.getAll().pipe(switchMap(products => {
+      this.products = products
+      return this.route.queryParamMap
+    }))
+      .subscribe(params => {
+        this.category = params.get('category');
+        this.applyFilter();
+
+      })
   }
+  private applyFilter() {
+    this.filteredProducts = (this.category) ?
+      this.products.filter(p => this.category == p.payload.val().category) :
+      this.products
+  }
+
 }

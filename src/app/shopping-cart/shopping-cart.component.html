@@ -1,5 +1,5 @@
 <h1>Shopping Cart</h1>
-<div class="row col-8" *ngIf="cart$ | async as cart">
+<div class="row col-10" *ngIf="cart$ | async as cart">
   <p>Your shopping cart has {{ cart.totalItemsCount }} items</p>
   <table class="table">
     <thead>
